@@ -1,5 +1,11 @@
 # AI SaaS Starter
 
+## 当前项目规划
+
+本仓库用于开发面向全球用户的英文照片跳舞工具站 `phototodancevideo.com`。
+
+开发范围、模板优先级、验收标准和待验证事项见：[项目规划（中文）](docs/PROJECT_PLAN.zh-CN.md)。该文档描述计划，尚不代表功能已实现。
+
 A headless SaaS engine for building AI-powered products with Claude Code. Pre-wired business logic (payments, credits, subscriptions, auth, RBAC, i18n, CMS) with minimal UI — you build your product pages on top.
 
 ## Quick Start
