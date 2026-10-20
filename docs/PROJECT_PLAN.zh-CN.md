@@ -1,8 +1,11 @@
 # Photo to Dance Video 项目规划
 
-更新日期：2026-10-20（America/New_York）  
-项目域名：phototodancevideo.com  
-代码仓库：wangxiongbiao/ai-saas-starter  
+更新日期：2026-10-20（America/New_York）
+
+项目域名：phototodancevideo.com
+
+代码仓库：wangxiongbiao/ai-saas-starter
+
 状态：已确定产品方向，尚未实现本规划中的舞蹈业务功能。
 
 ## 1. 产品定位与市场
