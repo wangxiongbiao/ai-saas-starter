@@ -1,38 +1,16 @@
 import { createFileRoute } from '@tanstack/react-router';
-
-import { m } from '@/paraglide/messages.js';
-import { getLocale } from '@/paraglide/runtime.js';
-import { Footer } from '@/blocks/footer';
-import { Header } from '@/blocks/header';
-import { Pricing } from '@/blocks/pricing';
+import { DancePricing } from '@/blocks/dance-site';
+import { envConfigs } from '@/config';
+import { localizeUrl } from '@/paraglide/runtime.js';
 
 export const Route = createFileRoute('/pricing')({
-  loader: () => {
-    const locale = getLocale();
-    return {
-      title: m['landing.pricing.title']({}, { locale }),
-      description: m['landing.pricing.description']({}, { locale }),
-    };
-  },
-  head: ({ loaderData }) => ({
-    meta: loaderData
-      ? [
-          { title: loaderData.title },
-          { name: 'description', content: loaderData.description },
-        ]
-      : [],
+  head: () => ({
+    meta: [
+      { title: 'Credit Pricing' + ' | ' + envConfigs.app_name },
+      { name: 'description', content: 'Explore photo-to-dance templates. Single-person photos, planned 9:16 MP4 output and no music included. Generation is coming soon.' },
+      { name: 'robots', content: 'noindex, follow' },
+    ],
+    links: [{ rel: 'canonical', href: localizeUrl(envConfigs.app_url + '/pricing').href }],
   }),
-  component: PricingPage,
+  component: () => <DancePricing />,
 });
-
-function PricingPage() {
-  return (
-    <div className="bg-background text-foreground flex min-h-screen flex-col">
-      <Header />
-      <main className="flex-1">
-        <Pricing />
-      </main>
-      <Footer />
-    </div>
-  );
-}

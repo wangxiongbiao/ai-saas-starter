@@ -1,0 +1,36 @@
+name: Dance UI checks
+on:
+  push:
+    branches: [codex/photo-to-dance-ui]
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - name: Audit changes since planning checkpoint
+        run: |
+          git reset --soft 33e944fb870f9df0694ae62698ee62d445775400
+          python3 .claude/skills/security-scan/scripts/scan_staged.py
+          git reset --mixed "$GITHUB_SHA"
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+        env:
+          DATABASE_PROVIDER: sqlite
+          DATABASE_URL: file:data/ci.db
+          VITE_APP_NAME: Photo to Dance
+          VITE_APP_URL: https://phototodancevideo.com
+      - run: pnpm exec tsc --noEmit
