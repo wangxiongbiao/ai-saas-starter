@@ -1,0 +1,61 @@
+{
+  "project": "phototodancevideo.com",
+  "confirmed_date": "2026-10-20",
+  "status": "image_inventory_only_png_transfer_pending",
+  "assets": [
+    {
+      "target_filename": "homepage-approved-2026-10-20.png",
+      "title": "首页",
+      "source_filename": "照片跳舞视频生成器首页.png",
+      "repository_image_present": false
+    },
+    {
+      "target_filename": "templates-approved-2026-10-20.png",
+      "title": "模板目录",
+      "source_filename": "优雅舞蹈模板目录.png",
+      "repository_image_present": false
+    },
+    {
+      "target_filename": "my-videos-approved-2026-10-20.png",
+      "title": "我的作品",
+      "source_filename": "我的舞蹈视频.png",
+      "repository_image_present": false
+    },
+    {
+      "target_filename": "pricing-approved-2026-10-20.png",
+      "title": "积分购买",
+      "source_filename": "舞动视频积分购买页概念.png",
+      "repository_image_present": false
+    },
+    {
+      "target_filename": "love-options-approved-2026-10-20.png",
+      "title": "Love Options 修正版",
+      "source_filename": "Love Options 舞蹈模板界面.png",
+      "repository_image_present": false
+    },
+    {
+      "target_filename": "stateside-approved-2026-10-20.png",
+      "title": "Stateside 修正版",
+      "source_filename": "Stateside舞蹈AI概念预览.png",
+      "repository_image_present": false
+    },
+    {
+      "target_filename": "mobile-core-approved-2026-10-20.png",
+      "title": "手机端四屏修正版：首页、模板目录、Love Options、我的作品",
+      "source_filename": "四屏移动视频生成器界面.png",
+      "repository_image_present": false
+    },
+    {
+      "target_filename": "mobile-stateside-pricing-approved-2026-10-20.png",
+      "title": "手机端补充：Stateside、积分购买",
+      "source_filename": "Photo to Dance 双屏移动端设计.png",
+      "repository_image_present": false
+    },
+    {
+      "target_filename": "generator-states-approved-2026-10-20.png",
+      "title": "生成器五种状态：上传后、生成中、成功、失败、积分不足",
+      "source_filename": "照片转舞蹈生成器状态设计板.png",
+      "repository_image_present": false
+    }
+  ]
+}
