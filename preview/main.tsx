@@ -1,9 +1,10 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { createRootRoute, createRoute, createRouter, RouterProvider, Outlet } from '@tanstack/react-router';
-import { DanceHome, DanceDirectory, DanceTemplatePage, DancePricing, DanceShell } from '../src/blocks/dance-site';
+import { DanceHome, DanceDirectory, DanceTemplatePage, DancePricing, DanceShell, DanceVideos } from '../src/blocks/dance-site';
 const root = createRootRoute({ component: Outlet });
 const routes = [
+  createRoute({ getParentRoute: () => root, path: '/settings/videos', component: DanceVideos }),
   createRoute({ getParentRoute: () => root, path: '/', component: DanceHome }),
   createRoute({ getParentRoute: () => root, path: '/templates', component: DanceDirectory }),
   createRoute({ getParentRoute: () => root, path: '/templates/love-options-dance', component: () => <DanceTemplatePage slug="love-options-dance" /> }),
