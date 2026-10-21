@@ -42,7 +42,7 @@ export async function startDanceTask(input: {
   if (!/^dance\/[a-zA-Z0-9_-]+\/inputs\/[a-z0-9-]+\.(jpg|png|webp)$/.test(key)) {
     throw new Error('Select a privately uploaded photo');
   }
-  const template = danceTemplate(slug);
+  const template = await danceTemplate(slug);
   if (!template?.enabled || !template.model || !template.credits) {
     throw new Error('This dance template is not available yet');
   }
