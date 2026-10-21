@@ -62,9 +62,9 @@ try {
   assert.equal(await getBalance(userId), 10, 'Duplicate explicit revocation must not refund twice');
 
   const consumption = await dbh.select().from(credit).where(eq(credit.userId, userId));
-  const records = consumption.filter(c => c.transactionType === 'consume');
+  const records = consumption.filter((c: any) => c.transactionType === 'consume');
   assert.equal(records.length, 20, 'Every accepted job must have one consumption ledger entry');
-  assert.ok(consumption.every(c => c.remainingCredits >= 0), 'No negative credit lots');
+  assert.ok(consumption.every((c: any) => c.remainingCredits >= 0), 'No negative credit lots');
   console.log('PostgreSQL concurrency checks passed', { taskCount, duplicateAttemptCount: attempts.length, independentAttemptCount: burst.length });
 } finally {
   // Tests use a unique user per run; cleanup only its own children.
