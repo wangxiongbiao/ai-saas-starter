@@ -72,7 +72,7 @@ function GenerateButton({ home = false, stateside = false }: { home?: boolean; s
 }
 function HowItWorks() { return <section className="dt-how" id="how-it-works"><h2>{m['dance.how']()}</h2><div>{[ImageIcon,UploadCloud,Play].map((Icon,i) => <article key={i}><div><span>{i+1}</span><i><Icon /></i></div><h3>{[m['fidelity.step1'](),m['fidelity.step2'](),m['fidelity.step3']()][i]}</h3><p>{[m['fidelity.step1Body'](),m['fidelity.step2Body'](),m['fidelity.step3Body']()][i]}</p></article>)}</div></section>; }
 function HomeCollection() { return <section className="dt-home-collection"><h2>{m['fidelity.find']()}</h2><div>
-  <Link className="dt-mini-card" href="/templates/love-options-dance"><img src={art('home-dance')} alt="Love Options" /><div><h3>Love Options</h3><ArrowRight /><span>{m['fidelity.useTemplate']()}</span></div></Link>
+  <Link className="dt-mini-card" href="/templates/love-options-dance"><img src={art('home-choice')} alt="Love Options" /><div><h3>Love Options</h3><ArrowRight /><span>{m['fidelity.useTemplate']()}</span></div></Link>
   <Link className="dt-mini-card muted" href="/templates/stateside-dance"><img src={art('directory-stateside')} alt="Stateside" /><div><h3>Stateside</h3><span className="dt-pill">{m['dance.soon']()}</span></div></Link>
   <div className="dt-mini-more"><PersonStanding /><strong>{m['fidelity.moreDances']()}</strong></div></div></section>; }
 export function DanceHome() {
@@ -80,7 +80,7 @@ export function DanceHome() {
   const [selectedInfo,setSelectedInfo] = useState(false);
   return <DanceShell page="dt-home"><section className="dt-hero"><p className="dt-eyebrow">{m['dance.eyebrow']()}</p><h1>{m['dance.title']()}</h1><p className="desktop-only">{m['fidelity.homeIntro']()}</p><p className="mobile-only">{m['fidelity.mobileIntro']()}</p></section>
     <div className="dt-home-generator"><section className="dt-home-controls">
-      <div className="dt-choose desktop-only"><h3>{m['fidelity.chooseNumber']()}</h3><div>{(['love-options-dance','stateside-dance'] as DanceSlug[]).map(s => <button type="button" key={s} aria-pressed={slug === s} onClick={() => setSlug(s)} className={isStateside(s) ? 'coming' : ''}><div><img src={art(isStateside(s) ? 'directory-stateside' : 'home-dance')} alt={title(s)} />{slug === s ? <i><Check /></i> : null}{isStateside(s) ? <span className="dt-pill">{m['dance.soon']()}</span> : null}</div><strong>{title(s)}</strong></button>)}</div></div>
+      <div className="dt-choose desktop-only"><h3>{m['fidelity.chooseNumber']()}</h3><div>{(['love-options-dance','stateside-dance'] as DanceSlug[]).map(s => <button type="button" key={s} aria-pressed={slug === s} onClick={() => setSlug(s)} className={isStateside(s) ? 'coming' : ''}><div><img src={art(isStateside(s) ? 'home-coming' : 'home-choice')} alt={title(s)} />{slug === s ? <i><Check /></i> : null}{isStateside(s) ? <span className="dt-pill">{m['dance.soon']()}</span> : null}</div><strong>{title(s)}</strong></button>)}</div></div>
       <Link className="dt-mobile-template mobile-only" href={'/templates/' + slug}><img src={art('mobile-love')} alt={title(slug)} /><div><h2>{title(slug)}</h2><p>{m['fidelity.mobileIntro']()}</p></div><ChevronRight /></Link>
       <PhotoPicker examples /><p className="dt-output"><Info />{m['fidelity.vertical']()}</p><div className="mobile-only"><Specs /></div><GenerateButton home />
     </section><section className="dt-home-preview desktop-only"><div className="dt-preview-heading"><h2>{title(slug)}</h2><span className="dt-pill">{m['dance.preview']()}</span></div>

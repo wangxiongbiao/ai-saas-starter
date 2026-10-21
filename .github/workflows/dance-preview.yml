@@ -2,7 +2,7 @@ name: Render dance preview
 on:
   push:
     branches: [codex/photo-to-dance-ui]
-    paths: ['preview/**', 'src/blocks/dance-site.tsx', 'src/styles/dance.css', '.github/workflows/dance-preview.yml']
+    paths: ['public/design/**', 'preview/**', 'src/blocks/dance-site.tsx', 'src/styles/dance.css', '.github/workflows/dance-preview.yml']
 permissions:
   contents: read
 jobs:
@@ -29,9 +29,12 @@ jobs:
             if curl -fsS http://127.0.0.1:4173/ > /dev/null; then break; fi
             sleep 1
           done
-          pnpm dlx playwright@1.56.1 screenshot --browser chromium --viewport-size "1440,1200" --full-page --wait-for-timeout 2000 http://127.0.0.1:4173/ preview-shots/home-desktop.png
+          pnpm dlx playwright@1.56.1 screenshot --browser chromium --viewport-size "1536,1024" --full-page --wait-for-timeout 2000 http://127.0.0.1:4173/ preview-shots/home-desktop.png
           pnpm dlx playwright@1.56.1 screenshot --browser chromium --viewport-size "390,844" --full-page --wait-for-timeout 2000 http://127.0.0.1:4173/ preview-shots/home-mobile.png
           pnpm dlx playwright@1.56.1 screenshot --browser chromium --viewport-size "1440,1100" --full-page --wait-for-timeout 2000 http://127.0.0.1:4173/templates/love-options-dance preview-shots/love-options.png
+          pnpm dlx playwright@1.56.1 screenshot --browser chromium --viewport-size "390,844" --full-page --wait-for-timeout 1500 http://127.0.0.1:4173/templates/love-options-dance preview-shots/love-mobile.png
+          pnpm dlx playwright@1.56.1 screenshot --browser chromium --viewport-size "390,844" --full-page --wait-for-timeout 1500 http://127.0.0.1:4173/pricing preview-shots/pricing-mobile.png
+          pnpm dlx playwright@1.56.1 screenshot --browser chromium --viewport-size "390,844" --full-page --wait-for-timeout 1500 http://127.0.0.1:4173/templates/stateside-dance preview-shots/stateside-mobile.png
       - uses: actions/upload-artifact@v4
         with:
           name: dance-preview-screenshots
