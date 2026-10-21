@@ -1,22 +1,21 @@
 # Photo to Dance — development checkpoint
 
-This branch implements a first UI slice against PROJECT_PLAN.zh-CN.md and UI_STYLE_GUIDE.zh-CN.md.
+Last updated: 2026-10-21. Branch: codex/photo-to-dance-ui.
 
-Implemented:
-- Responsive cream/black public shell, homepage, template directory, Love Options and Stateside pages, and prelaunch pricing.
-- Local-only image selection, JPG/PNG/WebP MIME filtering, browser preview, replacement/removal, and object URL cleanup.
-- Explicit unavailable templates, 9:16 placeholder previews, no-music disclosure, FAQ, limitations, and input guidance.
-- No invented prices, durations, credits, real examples, or successful generation.
-- Prelaunch pages are noindex until verified templates are available.
+Implemented in this branch:
+- Responsive public UI (home, directory, Love Options, Stateside, pricing), image assets, My Videos.
+- Private authenticated dance image upload and download, without public-disk fallback.
+- Server-verified template availability and credits, deterministic idempotent task keys, transactional charge/refund logic.
+- A PostgreSQL-only Replicate polling worker that claims tasks once, handles terminal states, stores private MP4 results and refunds confirmed upstream failures.
+- Real task history and download links in My Videos (no fictitious completed task cards).
+- Admin template editor and protected CRUD-style settings API for the two MVP templates.
+- Scheduled GitHub Actions worker definition (will activate only after merge to default branch and configuring secrets).
+- Isolated preview builds and CI security/build/type/SQLite regression checks.
 
-Not implemented:
-- Upload to private storage, generation provider, background tasks, credit deduction/refund, result persistence and downloads.
-- My Videos and template administration.
-- Verified media and pixel-level comparison against approved PNGs (repository contains only their inventory).
+Not verified or configured:
+- Production PostgreSQL stress and concurrency tests, cloud storage credentials, model compatibility/reference-action licensing, real Replicate generations, Stripe checkout and price disclosure.
+- Output quality across 20 authorized photos, actual cost and duration, retention/deletion, production serving and visual pixel matching.
+- Brand new template slug creation (only the initial two fixed templates are configurable).
 
-Validation:
-- Reviewed changed UI for unsafe HTML, server secrets, mutation endpoints, and fake payment/generation actions. None added.
-- Browser execution, TypeScript, production build and the Python security scanner could not run in the originating session.
-- CI workflow runs build, type checking and the repository scanner on the branch; inspect its actual result before merging.
-- Chinese message keys are present; untranslated new copy intentionally falls back to English for this English-first implementation.
-- Do not treat this checkpoint as recovery of the previously reported unpushed local implementation.
+Launch and acceptance checklist: docs/DANCE_DEPLOYMENT.zh-CN.md.
+Do not confuse green CI with production readiness; the paid generator stays gated until all required dependencies are configured and proven.
