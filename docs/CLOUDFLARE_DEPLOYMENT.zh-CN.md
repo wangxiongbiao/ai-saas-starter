@@ -82,3 +82,13 @@ Cloudflare Builds 通过 API 关联 GitHub 私有仓库 wangxiongbiao/ai-saas-st
 - 已直接在 Cloudflare 生成并保存独立 Worker `AUTH_SECRET`，不向聊天或 GitHub 回传密钥。
 - **唯一必须的数据库接线**：在 Cloudflare Dashboard → Hyperdrive 手动创建 `photodance-neon-preview`，连接 Neon 项目 `phototodancevideo` → 分支 `dance-integration` → DB `dance_test`。使用 Direct 连接信息，SSL 必须开启、Query caching disabled。不要填生产库 `phototodance`。
 - Hyperdrive 创建完成后，只需要将其不敏感的 32 位 ID 写入 `wrangler.jsonc` 中的 `HYPERDRIVE` Binding，再触发 Cloudflare Build，即可进行真正的预览站部署与 HTTP 验收。生产 Hyperdrive ID 不可用于此预览。
+
+## 2026-10-21 预览部署成功验证
+
+- Cloudflare Hyperdrive `preview` 已创建，配置 ID `06a96dd38c2e4566a4db40b7a65c4969`，目标 Neon `dance_test`，SSL require，SQL caching disabled。
+- **重要**：该 Hyperdrive 实际连接 Neon `br-dawn-night-ar6vcn3j` 测试分支上的 `dance_test`，而不是旧 `dance-integration` 分支。已校验是独立于 `production` 的 Neon 分支，数据库已有 22 张业务表。
+- GitHub 开发分支已在 `wrangler.jsonc` 引用上述 `HYPERDRIVE`，R2 绑定仍为 `photodance-private-preview`，生成保持关闭。
+- Cloudflare Builds 两次真实构建及部署成功：`95f33eee-da93-4c7c-8235-5124ef35ec62` 与 `f975264e-88b0-4c5b-b26e-52927cc99e98`。Nitro/TanStack SSR 构建完成，142 个静态资源上传成功，Worker `photodance-web-preview` 已发布到 `preview.phototodancevideo.com`。
+- Cloudflare API 验证 Worker 当前有 `HYPERDRIVE`、`DANCE_PRIVATE_BUCKET`、`AUTH_SECRET` 和 `ASSETS` Binding；自定义域名路由 enabled，DNS 代理 AAAA 记录存在。
+- **HTTP 验收未完成**：本次执行环境的外部 DNS 解析不可用，连常规公开域名也会解析超时，无法从该环境完成首页 200、API JSON、登录与上传验证。这不代表 Cloudflare 域名本身异常。需从正常可联网浏览器检查 `https://preview.phototodancevideo.com/`、`/api/dance/templates` 及登录/素材隔离；发现错误查看 Cloudflare Workers Logs。
+- 正式 `phototodancevideo.com` 与 Neon 正式数据库、R2 正式桶仍未修改，AI 生成及支付尚未开放。
