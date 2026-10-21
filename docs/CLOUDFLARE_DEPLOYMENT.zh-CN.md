@@ -92,3 +92,14 @@ Cloudflare Builds 通过 API 关联 GitHub 私有仓库 wangxiongbiao/ai-saas-st
 - Cloudflare API 验证 Worker 当前有 `HYPERDRIVE`、`DANCE_PRIVATE_BUCKET`、`AUTH_SECRET` 和 `ASSETS` Binding；自定义域名路由 enabled，DNS 代理 AAAA 记录存在。
 - **HTTP 验收未完成**：本次执行环境的外部 DNS 解析不可用，连常规公开域名也会解析超时，无法从该环境完成首页 200、API JSON、登录与上传验证。这不代表 Cloudflare 域名本身异常。需从正常可联网浏览器检查 `https://preview.phototodancevideo.com/`、`/api/dance/templates` 及登录/素材隔离；发现错误查看 Cloudflare Workers Logs。
 - 正式 `phototodancevideo.com` 与 Neon 正式数据库、R2 正式桶仍未修改，AI 生成及支付尚未开放。
+
+## 实际部署成功：2026-10-21
+
+- Cloudflare Hyperdrive 名称 `preview`，ID `06a96dd38c2e4566a4db40b7a65c4969`，连接 Neon 预览分支的 `dance_test`（22 张表），已关闭 SQL caching，TLS 为 Require。
+- GitHub `codex/photo-to-dance-ui` 的 `wrangler.jsonc` 已绑定预览 Hyperdrive（提交 `290a586`），继续只使用 `photodance-private-preview` R2。
+- Cloudflare Builds 两个针对同一提交的构建均成功，包括 SSR 编译、静态资源上传、Worker 部署和自定义域名发布。
+- 当前预览地址：https://preview.phototodancevideo.com ，Cloudflare zone DNS 中已自动创建受代理记录，自定义域名指向 `photodance-web-preview`。
+- 部署后查询 Worker bindings 确认：`HYPERDRIVE` → 预览 ID；`DANCE_PRIVATE_BUCKET` → 预览 Bucket；`AUTH_SECRET` → Secret。**没有使用生产数据库或生产 R2 Bucket。**
+- 已通过 Cloudflare Browser Rendering 实际访问首页，返回 HTML（约 31 KB）并识别 Photo to Dance 页面内容，没有检测到应用错误页。
+- 尝试使用 Browser Rendering 验证 `/api/dance/templates` 遇到浏览器服务 429 调用限流；这不等于 API 返回 429，**后端 API 登录、文件读写、模型生成、真实支付仍待单独实测**。
+- `DANCE_GENERATION_ENABLED=false`，未启用真实 AI 视频任务及收费。不要把预览站当作生产上线。
