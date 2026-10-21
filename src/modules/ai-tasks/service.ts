@@ -25,6 +25,7 @@ export async function createTask(params: {
   prompt: string;
   costCredits?: number;
   options?: any;
+  id?: string;
 }): Promise<any> {
   const { userId, mediaType, provider, model, prompt, costCredits, options } =
     params;
@@ -38,7 +39,7 @@ export async function createTask(params: {
   return db().transaction(async (tx: any) => {
     // 1. Insert task
     const taskData: any = {
-      id: getUuid(),
+      id: params.id || getUuid(),
       userId,
       mediaType,
       provider,
