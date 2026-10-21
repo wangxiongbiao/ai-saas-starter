@@ -72,3 +72,13 @@ Cloudflare Builds 通过 API 关联 GitHub 私有仓库 wangxiongbiao/ai-saas-st
 - 预览数据库依然是 Neon `dance-integration / dance_test`（已初始化 22 张表）；预览 R2 使用 `photodance-private-preview`，禁止引用正式库与正式 Bucket。
 - 不要用生产 Hyperdrive `3947cd3e7a3a4df5bb1ab8b79ea22108` 替代预览 Hyperdrive。预览 Hyperdrive 必须由用户在 Cloudflare 控制台输入 Neon 的 **dance_test Direct 连接信息**并关闭 Query caching；不能在代码、提交、聊天里传递 Neon 密码。
 - 创建后，仅将新 Hyperdrive 的公开 ID 填入 `wrangler.jsonc` 的 `HYPERDRIVE` Binding；再将随机 `AUTH_SECRET` 保存为 Cloudflare Worker Secret，随后运行 `pnpm cf:preview:check` 和 Cloudflare Builds 重建。
+
+## 授权恢复后新增的资源（2026-10-21）
+
+- Cloudflare ↔ GitHub 仓库连接已验证成功。
+- 独立 Worker `photodance-web-preview` 已创建，当前是仅返回 HTTP 503 的安全占位脚本，不是业务站。
+- Worker 绑定自动构建到 `codex/photo-to-dance-ui`；Cloudflare Builds Build Token 及 GitHub 仓库关联已建立。
+- 第一次真实 Cloudflare 构建 UUID：`393b9e30-b394-449c-a998-5cecda355323`。从 GitHub 克隆、安装依赖、SSR 编译全部通过；Deploy 阶段由 `scripts/check-cf-preview.mjs` 按设计拒绝，因为预览 Hyperdrive 尚未设置。任务整体状态为 fail，但编译成功且没有部署错误版本。
+- 已直接在 Cloudflare 生成并保存独立 Worker `AUTH_SECRET`，不向聊天或 GitHub 回传密钥。
+- **唯一必须的数据库接线**：在 Cloudflare Dashboard → Hyperdrive 手动创建 `photodance-neon-preview`，连接 Neon 项目 `phototodancevideo` → 分支 `dance-integration` → DB `dance_test`。使用 Direct 连接信息，SSL 必须开启、Query caching disabled。不要填生产库 `phototodance`。
+- Hyperdrive 创建完成后，只需要将其不敏感的 32 位 ID 写入 `wrangler.jsonc` 中的 `HYPERDRIVE` Binding，再触发 Cloudflare Build，即可进行真正的预览站部署与 HTTP 验收。生产 Hyperdrive ID 不可用于此预览。
