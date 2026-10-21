@@ -7,7 +7,8 @@
 - 预览域名：准备使用 preview.phototodancevideo.com；尚未创建正式 Worker 自定义域名路由。
 - 生产 Hyperdrive：photodance-neon-production，ID 3947cd3e7a3a4df5bb1ab8b79ea22108；连接 Neon 生产库 phototodance，SQL 缓存 disabled。
 - 测试 Hyperdrive：暂未配置。预览环境禁止绑定生产库，否则预览注册和测试任务会写入真实数据库。
-- 私有存储：photodance-private-prod（WNAM），r2.dev 关闭，无公开 Custom Domain。
+- Neon 测试数据库：dance-integration / dance_test 已执行 Drizzle 初始迁移（78 条 DDL），并验证 22 张表。Neon 正式 phototodance 尚未修改。
+- 私有存储：正式桶 photodance-private-prod + 预览桶 photodance-private-preview（均 WNAM）。两桶的 r2.dev 都关闭，均无公开 Custom Domain；预览 Worker 仅绑定预览桶。
 - R2 Worker Binding：DANCE_PRIVATE_BUCKET 已在 wrangler.jsonc 中配置；普通私有 PUT/GET/HEAD/DELETE 走绑定，无需 S3 Access Key。
 - 生成与收费：DANCE_GENERATION_ENABLED=false，未启用 Replicate 和 Stripe。
 
@@ -35,7 +36,7 @@ Cloudflare Builds 通过 API 关联 GitHub 私有仓库 wangxiongbiao/ai-saas-st
 "hyperdrive": [{ "binding": "HYPERDRIVE", "id": "<PREVIEW_HYPERDRIVE_ID>" }],
 ```
 
-6. 初始化测试数据库：在受保护的终端以 dance_test 连接串设置 DATABASE_PROVIDER=postgresql、DATABASE_URL，执行 pnpm db:setup；确认库名正确、当前为空之后运行 pnpm db:push。仓库 CI 的 PostgreSQL 并发压力测试使用一次性容器，不会触碰 Neon 生产库。
+6. 测试数据库已执行 Drizzle 初始化并确认 22 张业务表。后续变更请审查生成的 migration，先在测试库演练，不能对生产库盲目 db:push。仓库 CI 的 PostgreSQL 并发压力测试使用一次性容器，不会触碰 Neon 生产库。
 7. 验证 Neon dance_test 中有 user、session、config、credit、ai_task 等业务表，然后才能部署预览 Worker。
 
 ## Workers 预览部署
