@@ -23,7 +23,9 @@
     "format:check": "prettier --check .",
     "prepare": "husky",
     "test:dance:postgres": "tsx scripts/test-dance-postgres.ts",
-    "test:dance:r2": "tsx scripts/test-dance-r2.ts"
+    "test:dance:r2": "tsx scripts/test-dance-r2.ts",
+    "cf:preview:check": "node scripts/check-cf-preview.mjs",
+    "cf:preview:deploy": "pnpm cf:preview:check && pnpm cf:build && pnpm exec wrangler deploy"
   },
   "lint-staged": {
     "*.{ts,tsx,js,jsx,mjs,cjs}": "prettier --write",
