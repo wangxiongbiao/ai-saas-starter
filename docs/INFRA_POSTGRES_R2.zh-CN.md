@@ -36,3 +36,27 @@ GitHub CI 已配置独立 PostgreSQL 16 测试容器、并发积分事务测试�
 - https://developers.cloudflare.com/r2/api/tokens/
 - https://developers.cloudflare.com/r2/buckets/public-buckets/
 - https://developers.cloudflare.com/r2/buckets/object-lifecycles/
+
+## 实际云端资源校验（2026-10-21）
+
+经连接的 Neon 和 Cloudflare 账号实际查询，不涉及任何 Secret：
+
+| 资源 | 检查结果 |
+|---|---|
+| Neon 项目 | `phototodancevideo`，`aws-us-west-2`，PostgreSQL 17 |
+| Neon 正式分支 | `production`（已有并复用） |
+| 正式数据库 | `phototodance`（已有，连接与 SELECT 检查通过） |
+| 真实云端独立测试分支 | `dance-integration`（新增） |
+| 独立测试数据库 | `dance_test`（新增，不在正式分支） |
+| Cloudflare R2 Bucket | `photodance-private-prod`（新增），WNAM Standard |
+| 公开 r2.dev | Disabled（接口复核） |
+| Custom Domains | 空（接口复核） |
+| Cloudflare 管理 API 读写 | 临时对象 PUT/GET/DELETE 成功，之后按前缀确认无剩余对象 |
+| 生命周期 | 仅发现默认七天中止未完成分段上传的规则；还未设置用户素材过期时间 |
+| CORS | 无现存配置（GET 返回 404）；网页登录不需要公开 CORS |
+| Neon 正式 DB Schema | 查询到 0 个表；尚未执行 Drizzle 初始化 |
+| Neon 测试 DB Schema | 查询到 0 个表；尚未执行 Drizzle 初始化 |
+| R2 S3 私有访问 Token | **尚未创建**；需在 Cloudflare 控制台创建限定 Bucket 的专用 Object Read & Write Token |
+| 应用部署环境 Secret | 尚未配置；仅在部署平台设置，不进入代码仓库 |
+
+**剩余步骤**：在 Neon 控制台取得连接串放入部署平台 Secret，用审查过的迁移初始化正式库及独立测试库；在 R2 控制台创建并安全保存专用 S3 密钥，配置 STORAGE_*；以这些凭证在受保护的部署/测试终端运行 `pnpm test:dance:r2`，另在隔离 Neon `dance_test` 上运行 `pnpm test:dance:postgres`。目前 GitHub CI 的 PostgreSQL 测试通过，**不等于 Neon 云端实例已完成并发验收**。
