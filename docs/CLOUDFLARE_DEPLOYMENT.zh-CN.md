@@ -39,6 +39,8 @@ Cloudflare Builds 通过 API 关联 GitHub 私有仓库 wangxiongbiao/ai-saas-st
 6. 测试数据库已执行 Drizzle 初始化并确认 22 张业务表。后续变更请审查生成的 migration，先在测试库演练，不能对生产库盲目 db:push。仓库 CI 的 PostgreSQL 并发压力测试使用一次性容器，不会触碰 Neon 生产库。
 7. 验证 Neon dance_test 中有 user、session、config、credit、ai_task 等业务表，然后才能部署预览 Worker。
 
+> 注意：本次测试数据库基线是将 Drizzle 生成的 78 条初始化 DDL 安全地直接应用到空库，**并未创建 Drizzle migration journal**。后续不能直接对这个库执行未经审查的初始 `pnpm db:migrate`，否则可能尝试重复创建表。应先建立受版本控制的初始迁移及正确的迁移基线，或在隔离副本验证 `db:push` 的无改动差异，之后再按审查过的迁移流程升级；生产库目前仍为空，务必走标准初始化。
+
 ## Workers 预览部署
 
 1. wrangler.jsonc 已设置 nodejs_compat、PostgreSQL、R2 Binding 与禁用生成的总开关。
