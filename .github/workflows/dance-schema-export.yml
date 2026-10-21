@@ -1,0 +1,40 @@
+name: Generate PostgreSQL initialization SQL
+on:
+  push:
+    branches: [codex/photo-to-dance-ui]
+    paths:
+      - 'src/config/db/schema.postgres.ts'
+      - 'drizzle.config.ts'
+      - 'scripts/db-setup.mjs'
+      - '.github/workflows/dance-schema-export.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      DATABASE_PROVIDER: postgresql
+      DATABASE_URL: postgresql://db.example.invalid/dance_test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm db:setup
+      - name: Export initial SQL from authoritative Drizzle schema
+        run: |
+          pnpm db:generate
+          echo '=== DANCE_INITIAL_SCHEMA_START ==='
+          find drizzle -name '*.sql' -type f -print -exec cat {} \;
+          echo '=== DANCE_INITIAL_SCHEMA_END ==='
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dance-postgres-schema
+          path: drizzle/
