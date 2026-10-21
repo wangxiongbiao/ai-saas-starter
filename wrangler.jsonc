@@ -19,9 +19,8 @@
     "STORAGE_BUCKET": "photodance-private-preview",
     "DANCE_GENERATION_ENABLED": "false"
   },
-  // TODO: Before preview deploy, replace with an isolated Neon
-  // dance_test Hyperdrive. Do NOT connect preview traffic to production.
-  // "hyperdrive": [{ "binding": "HYPERDRIVE", "id": "PREVIEW_DB_HYPERDRIVE_ID" }],
+  // Isolated Neon dance_test preview branch; never use the production Hyperdrive.
+  "hyperdrive": [{ "binding": "HYPERDRIVE", "id": "06a96dd38c2e4566a4db40b7a65c4969" }],
   "r2_buckets": [
     { "binding": "DANCE_PRIVATE_BUCKET", "bucket_name": "photodance-private-preview" }
   ]
