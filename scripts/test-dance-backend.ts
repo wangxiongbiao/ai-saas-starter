@@ -64,15 +64,18 @@ try {
   assert.equal((await findTask(broken.id)).status, AITaskStatus.PENDING);
   assert.equal(await getBalance(userId), 80);
 
-  // Competing refunds may encounter SQLite lock contention; retrying is safe.
-  const parallel = await makeTask();
-  await Promise.allSettled([revoke(parallel.creditId), revoke(parallel.creditId)]);
-  await revoke(parallel.creditId);
+  // SQLite does not provide row-level FOR UPDATE locks. Parallel writers can
+  // produce SQLITE_BUSY and leave unfinished transactions that mask failures
+  // during teardown. Test duplicate callbacks serially here; multi-connection
+  // concurrency is a separate PostgreSQL/MySQL integration gate.
+  const duplicate = await makeTask();
+  await revoke(duplicate.creditId);
+  await revoke(duplicate.creditId);
   assert.equal(await getBalance(userId), 80);
 
   envConfigs.database_provider = 'd1';
   await assert.rejects(makeTask(), /transactional database/);
-  await assert.rejects(revoke(parallel.creditId), /transactional database/);
+  await assert.rejects(revoke(duplicate.creditId), /transactional database/);
   await assert.rejects(consume({ userId, credits: 1 }), /transactional database/);
   envConfigs.database_provider = 'sqlite';
   console.log('Dance backend regression checks passed');
