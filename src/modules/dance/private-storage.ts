@@ -45,6 +45,14 @@ export async function privatePut(key: string, data: Uint8Array, type: string) {
   if (!response.ok) throw new Error('Private object upload failed: ' + response.status);
 }
 
+export async function privateDelete(key: string) {
+  const { client } = storageConfig();
+  const response = await client.fetch(new Request(objectUrl(key), { method: 'DELETE' }));
+  if (!response.ok && response.status !== 404) {
+    throw new Error('Private object deletion failed: ' + response.status);
+  }
+}
+
 export async function privateHead(key: string) {
   const { client } = storageConfig();
   const response = await client.fetch(new Request(objectUrl(key), { method: 'HEAD' }));

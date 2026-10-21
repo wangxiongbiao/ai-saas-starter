@@ -21,7 +21,9 @@
     "rbac:assign": "tsx scripts/with-env.ts tsx scripts/assign-role.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "prepare": "husky"
+    "prepare": "husky",
+    "test:dance:postgres": "tsx scripts/test-dance-postgres.ts",
+    "test:dance:r2": "tsx scripts/test-dance-r2.ts"
   },
   "lint-staged": {
     "*.{ts,tsx,js,jsx,mjs,cjs}": "prettier --write",
