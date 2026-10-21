@@ -47,7 +47,7 @@ function PhotoPicker({ examples = false, unavailable = false }: { examples?: boo
   useEffect(() => { if (!photo) { setUrl(''); return; } const u = URL.createObjectURL(photo); setUrl(u); return () => URL.revokeObjectURL(u); }, [photo]);
   function select(file?: File) { if (!file || unavailable) return; if (!['image/jpeg','image/png','image/webp'].includes(file.type)) { setError(m['dance.invalid']()); return; } setError(''); setPhoto(file); }
   function drop(event: DragEvent) { event.preventDefault(); setDrag(false); select(event.dataTransfer.files[0]); }
-  return <div className="dt-photo"><h3><label htmlFor={id}>{examples ? m['fidelity.uploadNumber']() : c.upload}</label></h3>
+  return <div className="dt-photo"><h3><label htmlFor={id}>{examples ? <><span className="desktop-only">{m['fidelity.uploadNumber']()}</span><span className="mobile-only">{c.upload}</span></> : c.upload}</label></h3>
     <div className={'dt-upload ' + (drag ? 'dragging ' : '') + (url ? 'with-photo' : '')} onDragOver={e => { e.preventDefault(); if (!unavailable) setDrag(true); }} onDragLeave={() => setDrag(false)} onDrop={drop}>
       {url ? <img src={url} alt={m['dance.photoAlt']()} onError={() => { setPhoto(null); setError(m['dance.broken']()); }} /> : <><UploadCloud className="dt-upload-icon desktop-only" /><ImageIcon className="dt-upload-icon mobile-only" /></>}
       {!url ? <><p className="desktop-only">{unavailable ? m['fidelity.uploadLaunch']() : c.drop}</p><p className="mobile-only">{unavailable ? m['fidelity.uploadLaunch']() : c.tap}</p></> : null}
@@ -58,7 +58,7 @@ function PhotoPicker({ examples = false, unavailable = false }: { examples?: boo
     <span id={id + '-help'} className="dt-photo-help">{url ? c.local : examples ? '' : m['fidelity.photoRequirement']()}</span>
     {photo ? <button type="button" className="dt-remove" onClick={() => setPhoto(null)}>{m['dance.remove']()}</button> : null}
     {error ? <p role="alert">{error}</p> : null}
-    {examples ? <div className="dt-examples"><span>{m['fidelity.photoExamples']()}</span><div>{['home-face','home-side','home-back','home-original'].map(x => <img key={x} src={art(x)} alt={m['fidelity.examplePhoto']()} />)}</div></div> : null}
+    {examples ? <div className="dt-examples"><span>{m['fidelity.photoExamples']()}</span><div>{['home-face','home-side','home-back','home-full'].map(x => <img key={x} src={art(x)} alt={m['fidelity.examplePhoto']()} />)}</div></div> : null}
   </div>;
 }
 function Specs({ detailed = false, stateside = false }: { detailed?: boolean; stateside?: boolean }) {

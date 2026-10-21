@@ -1,3 +1,4 @@
+import '@fontsource-variable/inter';
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { createRootRoute, createRoute, createRouter, RouterProvider, Outlet } from '@tanstack/react-router';
