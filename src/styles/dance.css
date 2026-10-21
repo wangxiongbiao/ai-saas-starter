@@ -8,3 +8,7 @@
 @media(max-width:700px){.dt-home .dt-upload{min-height:151px;padding:18px 12px;gap:8px}.dt-home .dt-hero>.desktop-only{display:none!important}}
 
 .dt-stage{background-image:none!important;background-color:#eae6df}.dt-home .dt-header nav a:last-child{display:none}.dt-choose .coming .dt-pill{display:none}.dt-home .dt-hero h1{font-size:48px}.dt-home .dt-original img{object-fit:fill}
+
+/* Match the detail reference at its native content width and preserve portraits. */
+.dt-detail main,.dt-detail .dt-header,.dt-detail .dt-footer{max-width:936px}.dt-detail-original{width:144px;flex-shrink:0}.dt-love .dt-detail-preview .dt-still{max-height:none}.dt-detail .dt-header .dt-logo{font-size:22px}
+@media(max-width:700px){.dt-stateside .dt-template-summary>img.mobile-only{flex:0 0 140px}.dt-stateside .dt-template-summary>div{min-width:0}.dt-stateside .dt-detail-form>.dt-output{display:none!important}.dt-detail .dt-template-summary>img.mobile-only{flex-shrink:0}}
