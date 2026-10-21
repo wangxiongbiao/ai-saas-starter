@@ -34,3 +34,14 @@ jobs:
           VITE_APP_NAME: Photo to Dance
           VITE_APP_URL: https://phototodancevideo.com
       - run: pnpm exec tsc --noEmit
+      - name: Initialize disposable backend test database
+        run: pnpm db:push
+        env:
+          DATABASE_PROVIDER: sqlite
+          DATABASE_URL: file:data/dance-backend-test.db
+      - name: Verify task and credit invariants
+        run: pnpm exec tsx scripts/test-dance-backend.ts
+        env:
+          DATABASE_PROVIDER: sqlite
+          DATABASE_URL: file:data/dance-backend-test.db
+          DB_SINGLETON_ENABLED: 'true'

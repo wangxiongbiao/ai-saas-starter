@@ -1,6 +1,7 @@
 import { and, asc, desc, eq, gt, isNull, or, sql, sum } from 'drizzle-orm';
 
 import { db } from '@/core/db';
+import { requireCreditTransaction } from '@/core/db/require-transaction';
 import { credit } from '@/config/db/schema';
 import { getSnowId, getUuid } from '@/lib/hash';
 
@@ -122,6 +123,10 @@ export async function consume(params: {
     metadata,
     tx,
   } = params;
+  requireCreditTransaction();
+  if (!Number.isSafeInteger(amount) || amount <= 0) {
+    throw new Error('Credits must be a positive safe integer');
+  }
   const now = new Date();
 
   const execute = async (tx: any) => {
@@ -192,6 +197,12 @@ export async function consume(params: {
       batchNo++;
     }
 
+    // A concurrent consumer may have spent the balance before row locks were acquired.
+    // Throw so every partial debit in this transaction is rolled back.
+    if (remainingToConsume !== 0) {
+      throw new Error('Insufficient credits');
+    }
+
     // 3. Create consumption record
     const consumedCredit: NewCredit = {
       id: getUuid(),
@@ -218,40 +229,34 @@ export async function consume(params: {
 
 // --- Revoke (restore credits from a consumed record) ---
 
-export async function revoke(consumeCreditId: string) {
-  const [consumeRecord] = await db()
-    .select()
-    .from(credit)
-    .where(
-      and(
-        eq(credit.id, consumeCreditId),
-        eq(credit.transactionType, CreditTransactionType.CONSUME),
-        eq(credit.status, CreditStatus.ACTIVE)
-      )
-    )
-    .limit(1);
-
-  if (!consumeRecord || !consumeRecord.consumedDetail) return;
-
-  const items = JSON.parse(consumeRecord.consumedDetail);
-
-  await db().transaction(async (tx: any) => {
-    // Atomic increment per source grant — no read-modify-write race.
-    for (const item of items) {
-      await tx
-        .update(credit)
-        .set({
-          remainingCredits: sql`${credit.remainingCredits} + ${item.creditsConsumed}`,
-        })
-        .where(eq(credit.id, item.creditId));
+export async function revoke(consumeCreditId: string, transaction?: any) {
+  requireCreditTransaction();
+  const execute = async (tx: any) => {
+    // Lock inside the transaction: duplicate refunds must observe the deleted state.
+    const [record] = await tx.select().from(credit).where(and(
+      eq(credit.id, consumeCreditId),
+      eq(credit.transactionType, CreditTransactionType.CONSUME),
+      eq(credit.status, CreditStatus.ACTIVE)
+    )).limit(1).for('update');
+    if (!record) return;
+    if (!record.consumedDetail) throw new Error('Missing credit consumption detail');
+    const items = JSON.parse(record.consumedDetail);
+    if (!Array.isArray(items) || items.length === 0 || items.some((item: any) =>
+      typeof item.creditId !== 'string' ||
+      !Number.isSafeInteger(item.creditsConsumed) || item.creditsConsumed <= 0
+    ) || items.reduce((total: number, item: any) => total + item.creditsConsumed, 0) !== -record.credits) {
+      throw new Error('Invalid credit consumption detail');
     }
-
-    // Mark consumption record as deleted
-    await tx
-      .update(credit)
-      .set({ status: CreditStatus.DELETED })
+    for (const item of items) {
+      await tx.update(credit).set({
+        remainingCredits: sql`${credit.remainingCredits} + ${item.creditsConsumed}`,
+      }).where(and(eq(credit.id, item.creditId), eq(credit.userId, record.userId)));
+    }
+    await tx.update(credit).set({ status: CreditStatus.DELETED })
       .where(eq(credit.id, consumeCreditId));
-  });
+  };
+  if (transaction) return execute(transaction);
+  return db().transaction(execute);
 }
 
 // --- Auto-grant for new user ---

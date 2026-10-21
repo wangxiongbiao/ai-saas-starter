@@ -1,6 +1,7 @@
 import { and, desc, eq, isNull } from 'drizzle-orm';
 
 import { db } from '@/core/db';
+import { requireCreditTransaction } from '@/core/db/require-transaction';
 import { aiTask } from '@/config/db/schema';
 import { consume, revoke } from '@/modules/credits/service';
 import { getUuid } from '@/lib/hash';
@@ -28,6 +29,12 @@ export async function createTask(params: {
   const { userId, mediaType, provider, model, prompt, costCredits, options } =
     params;
 
+  requireCreditTransaction();
+  if (!Number.isSafeInteger(costCredits ?? 0) || (costCredits ?? 0) < 0) {
+    throw new Error('Invalid task credit cost');
+  }
+  const serializedOptions = options === undefined ? null : JSON.stringify(options);
+
   return db().transaction(async (tx: any) => {
     // 1. Insert task
     const taskData: any = {
@@ -37,6 +44,7 @@ export async function createTask(params: {
       provider,
       model,
       prompt,
+      options: serializedOptions,
       status: AITaskStatus.PENDING,
       costCredits: costCredits || 0,
     };
@@ -60,10 +68,11 @@ export async function createTask(params: {
 
       // Store consumed credit ID for potential revocation
       if (result.consumedCredit) {
+        task.creditId = result.consumedCredit.id;
         await tx
           .update(aiTask)
           .set({
-            taskInfo: JSON.stringify({ creditId: result.consumedCredit.id }),
+            creditId: result.consumedCredit.id,
           })
           .where(eq(aiTask.id, task.id));
       }
@@ -83,33 +92,28 @@ export async function updateTask(params: {
 }) {
   const { taskId, status, taskResult } = params;
 
-  const [task] = await db()
-    .select()
-    .from(aiTask)
-    .where(eq(aiTask.id, taskId))
-    .limit(1);
+  requireCreditTransaction();
+  if (!Object.values(AITaskStatus).includes(status)) throw new Error('Invalid task status');
+  return db().transaction(async (tx: any) => {
+    const [task] = await tx.select().from(aiTask)
+      .where(eq(aiTask.id, taskId)).limit(1).for('update');
+    if (!task) throw new Error('Task not found');
 
-  if (!task) throw new Error('Task not found');
+    // Terminal states are immutable, including when callbacks arrive out of order.
+    if ([AITaskStatus.SUCCESS, AITaskStatus.FAILED, AITaskStatus.CANCELED].includes(task.status)) return;
+    if (task.status === status) return;
+    if (status === AITaskStatus.PENDING) throw new Error('Cannot return task to pending');
 
-  // Update task
-  const updateData: any = { status };
-  if (taskResult) {
-    updateData.taskResult = JSON.stringify(taskResult);
-  }
-
-  await db().update(aiTask).set(updateData).where(eq(aiTask.id, taskId));
-
-  // Revoke credits on failure
-  if (status === AITaskStatus.FAILED && task.taskInfo) {
-    try {
-      const info = JSON.parse(task.taskInfo as string);
-      if (info.creditId) {
-        await revoke(info.creditId);
-      }
-    } catch {
-      // Ignore parse errors
+    if (status === AITaskStatus.FAILED || status === AITaskStatus.CANCELED) {
+      // Older tasks stored creditId in taskInfo; new tasks use the dedicated column.
+      const creditId = task.creditId || (task.taskInfo ? JSON.parse(task.taskInfo).creditId : undefined);
+      if (task.costCredits > 0 && !creditId) throw new Error('Missing task credit record');
+      if (creditId) await revoke(creditId, tx);
     }
-  }
+    const updateData: Record<string, unknown> = { status };
+    if (taskResult !== undefined) updateData.taskResult = JSON.stringify(taskResult);
+    await tx.update(aiTask).set(updateData).where(eq(aiTask.id, taskId));
+  });
 }
 
 /**
