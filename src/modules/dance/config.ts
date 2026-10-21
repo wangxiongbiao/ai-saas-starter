@@ -23,6 +23,9 @@ export function danceTemplate(slug: string): DanceTemplate | null {
   const ready = Boolean(
     vars[prefix + 'ENABLED'] === 'true' &&
     vars.DANCE_GENERATION_ENABLED === 'true' &&
+    ['postgres', 'postgresql'].includes(vars.DATABASE_PROVIDER || '') &&
+    vars.STORAGE_ENDPOINT && vars.STORAGE_BUCKET &&
+    vars.STORAGE_ACCESS_KEY && vars.STORAGE_SECRET_KEY &&
     vars.REPLICATE_API_TOKEN &&
     vars.DANCE_WORKER_SECRET &&
     model && referenceUrl &&

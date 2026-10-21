@@ -73,6 +73,29 @@ try {
   await revoke(duplicate.creditId);
   assert.equal(await getBalance(userId), 80);
 
+  // Stable task IDs enforce exactly one debit even after a repeated submit.
+  const fixedId = 'dance-regression-idempotency';
+  const fixed = () => createTask({
+    id: fixedId, userId, mediaType: 'video', provider: 'dance-replicate',
+    model: 'test', prompt: 'test', costCredits: 10,
+    options: { slug: 'love-options-dance', inputKey: 'dance/input' },
+  });
+  const fixedTask = await fixed();
+  assert.equal(fixedTask.id, fixedId);
+  assert.equal(await getBalance(userId), 70);
+  await assert.rejects(fixed());
+  assert.equal(await getBalance(userId), 70);
+  await updateTask({ taskId: fixedId, status: AITaskStatus.FAILED });
+  assert.equal(await getBalance(userId), 80);
+  const { danceTaskId } = await import('../src/modules/dance/service');
+  const { requireOwnedKey } = await import('../src/modules/dance/private-storage');
+  assert.equal(await danceTaskId(userId, 'fixed-request-key'), await danceTaskId(userId, 'fixed-request-key'));
+  assert.notEqual(await danceTaskId(userId, 'fixed-request-key'), await danceTaskId('other-user', 'fixed-request-key'));
+  assert.equal(requireOwnedKey(userId, 'dance/' + userId + '/inputs/test.jpg'),
+    'dance/' + userId + '/inputs/test.jpg');
+  assert.throws(() => requireOwnedKey(userId, 'dance/other-user/inputs/test.jpg'));
+  assert.throws(() => requireOwnedKey(userId, 'dance/' + userId + '/../other'));
+  
   envConfigs.database_provider = 'd1';
   await assert.rejects(makeTask(), /transactional database/);
   await assert.rejects(revoke(duplicate.creditId), /transactional database/);

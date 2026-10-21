@@ -87,20 +87,31 @@ function GenerateButton({ home = false, stateside = false, slug, photo, availabi
   const [error, setError] = useState('');
   const [created, setCreated] = useState(false);
   const requestKey = useRef<string | null>(null);
-  useEffect(() => { requestKey.current = null; setError(''); setCreated(false); }, [photo, slug]);
+  const uploaded = useRef<{ file: File; key: string } | null>(null);
+  useEffect(() => {
+    requestKey.current = null;
+    uploaded.current = null;
+    setError('');
+    setCreated(false);
+  }, [photo, slug]);
   async function submit() {
     if (!photo || !availability.enabled || busy) return;
     setBusy(true); setError('');
     try {
       if (!requestKey.current) requestKey.current = crypto.randomUUID();
-      const form = new FormData();
-      form.append('file', photo);
-      const uploaded = await fetch('/api/dance/upload', { method: 'POST', body: form });
-      const asset = await uploaded.json();
-      if (!uploaded.ok || !asset.data?.key) throw new Error(asset.error || 'Photo upload failed');
+      let key = uploaded.current?.file === photo ? uploaded.current.key : '';
+      if (!key) {
+        const form = new FormData();
+        form.append('file', photo);
+        const response = await fetch('/api/dance/upload', { method: 'POST', body: form });
+        const asset = await response.json();
+        if (!response.ok || !asset.data?.key) throw new Error(asset.error || 'Photo upload failed');
+        key = asset.data.key;
+        uploaded.current = { file: photo, key };
+      }
       const response = await fetch('/api/dance/tasks', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ slug, key: asset.data.key, idempotencyKey: requestKey.current }),
+        body: JSON.stringify({ slug, key, idempotencyKey: requestKey.current }),
       });
       const task = await response.json();
       if (!response.ok) throw new Error(task.error || 'Unable to create video');
