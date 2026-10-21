@@ -91,6 +91,11 @@ jobs:
           db_url+="@127.0.0.1:5432/dance_test?sslmode=disable"
           echo "DATABASE_URL=${db_url}" >> "$GITHUB_ENV"
       - run: pnpm db:setup
-      - run: pnpm db:push
+      - name: Initialize test DB schema
+        run: pnpm db:push
+        env:
+          DATABASE_URL: ${{ format('postgresql://{0}:{1}@{2}:{3}/{4}?sslmode=disable', env.PGUSER, env.PGPASSWORD, env.PGHOST, env.PGPORT, env.PGDATABASE) }}
       - name: Test real PostgreSQL concurrent credits and refunds
         run: pnpm exec tsx scripts/test-dance-postgres.ts
+        env:
+          DATABASE_URL: ${{ format('postgresql://{0}:{1}@{2}:{3}/{4}?sslmode=disable', env.PGUSER, env.PGPASSWORD, env.PGHOST, env.PGPORT, env.PGDATABASE) }}
