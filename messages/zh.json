@@ -965,5 +965,8 @@
   "fidelity.sampleVideo": "Design example",
   "fidelity.newVideo": "Create a new video",
   "fidelity.download": "Download MP4",
-  "fidelity.generating": "Generating…"
+  "fidelity.generating": "Generating…",
+  "fidelity.stateConcept": "Concept preview · testing pending",
+  "fidelity.stateConceptBody": "A preview of the Stateside dance concept. Photo upload and generation are not available yet.",
+  "fidelity.faqShort": "FAQ"
 }
