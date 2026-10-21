@@ -62,3 +62,13 @@ Cloudflare Builds 通过 API 关联 GitHub 私有仓库 wangxiongbiao/ai-saas-st
 - https://developers.cloudflare.com/r2/api/workers/workers-api-reference/
 - https://developers.cloudflare.com/workers/configuration/secrets/
 - https://github.com/wangxiongbiao/ai-saas-starter/pull/1
+
+## 2026-10-21 Cloudflare Builds 真实验证
+
+- GitHub 仓库已设为 Public，Cloudflare Builds 的 GitHub 仓库连接已建立（先前断开的问题已解决）。
+- 已建立独立的 `photodance-web-preview` Worker，目前仅返回 HTTP 503 的临时占位响应，**不是可用的业务网站**。
+- 该 Worker 已接入 `wangxiongbiao/ai-saas-starter` 的 `codex/photo-to-dance-ui` 分支，构建命令 `pnpm cf:build`，部署命令 `pnpm cf:preview:check && pnpm exec wrangler deploy`。
+- 第一次 Cloudflare Builds 任务 `393b9e30-b394-449c-a998-5cecda355323`：代码拉取、依赖安装与完整 SSR 编译成功；**部署阶段按设计被预览 Hyperdrive 前置检查拦截**。Cloudflare 显示 build outcome=fail 属于该安全拦截，不是前端/SSR 编译失败。
+- 预览数据库依然是 Neon `dance-integration / dance_test`（已初始化 22 张表）；预览 R2 使用 `photodance-private-preview`，禁止引用正式库与正式 Bucket。
+- 不要用生产 Hyperdrive `3947cd3e7a3a4df5bb1ab8b79ea22108` 替代预览 Hyperdrive。预览 Hyperdrive 必须由用户在 Cloudflare 控制台输入 Neon 的 **dance_test Direct 连接信息**并关闭 Query caching；不能在代码、提交、聊天里传递 Neon 密码。
+- 创建后，仅将新 Hyperdrive 的公开 ID 填入 `wrangler.jsonc` 的 `HYPERDRIVE` Binding；再将随机 `AUTH_SECRET` 保存为 Cloudflare Worker Secret，随后运行 `pnpm cf:preview:check` 和 Cloudflare Builds 重建。
