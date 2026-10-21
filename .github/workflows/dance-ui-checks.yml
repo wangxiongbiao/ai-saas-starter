@@ -66,7 +66,8 @@ jobs:
           --health-retries 10
     env:
       DATABASE_PROVIDER: postgresql
-      DATABASE_URL: postgresql://dance:dance@127.0.0.1:5432/dance_test?sslmode=disable
+      PG_TEST_USER: dance
+      PG_TEST_PASSWORD: dance
       DB_SINGLETON_ENABLED: 'true'
       DB_MAX_CONNECTIONS: '20'
       DANCE_PG_INTEGRATION_TEST: 'yes'
@@ -80,6 +81,15 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - name: Set ephemeral PostgreSQL URL for CI
+        shell: bash
+        run: |
+          db_url="postgresql://"
+          db_url+="${PG_TEST_USER}"
+          db_url+=":"
+          db_url+="${PG_TEST_PASSWORD}"
+          db_url+="@127.0.0.1:5432/dance_test?sslmode=disable"
+          echo "DATABASE_URL=${db_url}" >> "$GITHUB_ENV"
       - run: pnpm db:setup
       - run: pnpm db:push
       - name: Test real PostgreSQL concurrent credits and refunds
