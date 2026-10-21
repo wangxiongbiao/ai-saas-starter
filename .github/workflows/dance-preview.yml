@@ -1,0 +1,42 @@
+name: Render dance preview
+on:
+  push:
+    branches: [codex/photo-to-dance-ui]
+    paths: ['preview/**', 'src/blocks/dance-site.tsx', 'src/styles/dance.css', '.github/workflows/dance-preview.yml']
+permissions:
+  contents: read
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec vite build --config preview/vite.config.ts
+      - run: pnpm dlx playwright@1.56.1 install --with-deps chromium
+      - name: Capture actual pages
+        run: |
+          mkdir -p preview-shots
+          pnpm exec vite preview --config preview/vite.config.ts --host 127.0.0.1 > /tmp/dance-preview.log 2>&1 &
+          for attempt in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:4173/ > /dev/null; then break; fi
+            sleep 1
+          done
+          pnpm dlx playwright@1.56.1 screenshot --browser chromium --viewport-size "1440,1200" --full-page --wait-for-timeout 2000 http://127.0.0.1:4173/ preview-shots/home-desktop.png
+          pnpm dlx playwright@1.56.1 screenshot --browser chromium --viewport-size "390,844" --full-page --wait-for-timeout 2000 http://127.0.0.1:4173/ preview-shots/home-mobile.png
+          pnpm dlx playwright@1.56.1 screenshot --browser chromium --viewport-size "1440,1100" --full-page --wait-for-timeout 2000 http://127.0.0.1:4173/templates/love-options-dance preview-shots/love-options.png
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dance-preview-screenshots
+          path: preview-shots/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dance-preview-build
+          path: preview-dist/
