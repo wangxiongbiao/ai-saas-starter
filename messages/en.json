@@ -968,5 +968,6 @@
   "fidelity.generating": "Generating…",
   "fidelity.stateConcept": "Concept preview · testing pending",
   "fidelity.stateConceptBody": "A preview of the Stateside dance concept. Photo upload and generation are not available yet.",
-  "fidelity.faqShort": "FAQ"
+  "fidelity.faqShort": "FAQ",
+  "fidelity.goodToKnow": "Good to know"
 }
