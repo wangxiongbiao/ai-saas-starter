@@ -16,13 +16,13 @@
     "DB_SINGLETON_ENABLED": "false",
     "VITE_APP_NAME": "Photo to Dance",
     "VITE_APP_URL": "https://preview.phototodancevideo.com",
-    "STORAGE_BUCKET": "photodance-private-prod",
+    "STORAGE_BUCKET": "photodance-private-preview",
     "DANCE_GENERATION_ENABLED": "false"
   },
   // TODO: Before preview deploy, replace with an isolated Neon
   // dance_test Hyperdrive. Do NOT connect preview traffic to production.
   // "hyperdrive": [{ "binding": "HYPERDRIVE", "id": "PREVIEW_DB_HYPERDRIVE_ID" }],
   "r2_buckets": [
-    { "binding": "DANCE_PRIVATE_BUCKET", "bucket_name": "photodance-private-prod" }
+    { "binding": "DANCE_PRIVATE_BUCKET", "bucket_name": "photodance-private-preview" }
   ]
 }
