@@ -1,0 +1,43 @@
+name: Cloudflare Workers build verification
+on:
+  push:
+    branches: [codex/photo-to-dance-ui]
+    paths:
+      - 'src/**'
+      - 'wrangler.jsonc'
+      - 'wrangler.example.jsonc'
+      - 'vite.config.ts'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/cloudflare-build-check.yml'
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  worker-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Verify complete Cloudflare Worker SSR bundle
+        env:
+          DATABASE_PROVIDER: postgresql
+          VITE_APP_URL: https://preview.phototodancevideo.com
+          VITE_APP_NAME: Photo to Dance
+          DANCE_GENERATION_ENABLED: 'false'
+        run: pnpm cf:build
+      - name: Verify Wrangler generated output
+        run: |
+          test -d .output
+          test -f .output/server/wrangler.json
+          grep -q 'HYPERDRIVE' .output/server/wrangler.json
+          grep -q 'DANCE_PRIVATE_BUCKET' .output/server/wrangler.json

@@ -5,6 +5,16 @@ import { envConfigs } from '@/config';
  * The dance bucket must be PRIVATE. Unlike the general image uploader, this
  * module never returns a permanent public object URL and never writes under /public.
  */
+/**
+ * On Cloudflare Workers use the private R2 binding directly. This avoids
+ * issuing long-lived S3 access keys for ordinary photo/video operations.
+ * External AI provider presigning remains an explicit S3-credential gate.
+ */
+function boundR2Bucket(): any | null {
+  const env = (globalThis as any).__CF_ENV__ ?? (globalThis as any).__env__;
+  return env?.DANCE_PRIVATE_BUCKET ?? null;
+}
+
 function storageConfig() {
   const endpoint = envConfigs.storage_endpoint.replace(/\/+$/, '');
   const bucket = envConfigs.storage_bucket;
@@ -36,6 +46,14 @@ function objectUrl(key: string) {
 }
 
 export async function privatePut(key: string, data: Uint8Array, type: string) {
+  const bucket = boundR2Bucket();
+  if (bucket) {
+    const result = await bucket.put(key, data, {
+      httpMetadata: { contentType: type, cacheControl: 'private, no-store' },
+    });
+    if (!result) throw new Error('Private R2 upload failed');
+    return;
+  }
   const { client } = storageConfig();
   const response = await client.fetch(new Request(objectUrl(key), {
     method: 'PUT',
@@ -46,6 +64,8 @@ export async function privatePut(key: string, data: Uint8Array, type: string) {
 }
 
 export async function privateDelete(key: string) {
+  const bucket = boundR2Bucket();
+  if (bucket) { await bucket.delete(key); return; }
   const { client } = storageConfig();
   const response = await client.fetch(new Request(objectUrl(key), { method: 'DELETE' }));
   if (!response.ok && response.status !== 404) {
@@ -54,12 +74,22 @@ export async function privateDelete(key: string) {
 }
 
 export async function privateHead(key: string) {
+  const bucket = boundR2Bucket();
+  if (bucket) return Boolean(await bucket.head(key));
   const { client } = storageConfig();
   const response = await client.fetch(new Request(objectUrl(key), { method: 'HEAD' }));
   return response.ok;
 }
 
 export async function privateGet(key: string) {
+  const bucket = boundR2Bucket();
+  if (bucket) {
+    const object = await bucket.get(key);
+    if (!object) throw new Error('Private object not found');
+    return new Response(object.body, {
+      headers: { 'Content-Type': object.httpMetadata?.contentType || 'application/octet-stream' },
+    });
+  }
   const { client } = storageConfig();
   const response = await client.fetch(new Request(objectUrl(key), { method: 'GET' }));
   if (!response.ok) throw new Error('Private object not found');
