@@ -1,0 +1,29 @@
+name: Dance task worker
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  poll:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - name: Tick authenticated production worker
+        env:
+          DANCE_WORKER_URL: ${{ secrets.DANCE_WORKER_URL }}
+          DANCE_WORKER_SECRET: ${{ secrets.DANCE_WORKER_SECRET }}
+        shell: bash
+        run: |
+          if [ -z "$DANCE_WORKER_URL" ] || [ -z "$DANCE_WORKER_SECRET" ]; then
+            echo "Worker not configured; skipping"
+            exit 0
+          fi
+          case "$DANCE_WORKER_URL" in
+            https://*) ;;
+            *) echo "Worker URL must use HTTPS"; exit 1 ;;
+          esac
+          curl --fail-with-body --silent --show-error --retry 2 --max-time 90 \
+            -X POST "$DANCE_WORKER_URL/api/dance/worker" \
+            -H "Authorization: Bearer $DANCE_WORKER_SECRET"

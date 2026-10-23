@@ -1,0 +1,27 @@
+// Preview deployment configuration. No secrets in version control.
+// This config is NOT auto-deployed while the preview database and AUTH_SECRET
+// are unprovisioned. Never route the main production hostname from this file.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "photodance-web-preview",
+  "compatibility_date": "2026-10-21",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": false,
+  "routes": [
+    { "pattern": "preview.phototodancevideo.com", "custom_domain": true }
+  ],
+  "observability": { "enabled": true },
+  "vars": {
+    "DATABASE_PROVIDER": "postgresql",
+    "DB_SINGLETON_ENABLED": "false",
+    "VITE_APP_NAME": "Photo to Dance",
+    "VITE_APP_URL": "https://preview.phototodancevideo.com",
+    "STORAGE_BUCKET": "photodance-private-preview",
+    "DANCE_GENERATION_ENABLED": "false"
+  },
+  // Isolated Neon dance_test preview branch; never use the production Hyperdrive.
+  "hyperdrive": [{ "binding": "HYPERDRIVE", "id": "d188ba007fec4a529f17f9bd1033bfb8" }],
+  "r2_buckets": [
+    { "binding": "DANCE_PRIVATE_BUCKET", "bucket_name": "photodance-private-preview" }
+  ]
+}

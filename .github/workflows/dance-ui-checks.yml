@@ -1,0 +1,130 @@
+name: Dance UI checks
+on:
+  push:
+    branches: [codex/photo-to-dance-ui]
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - name: Audit changes since planning checkpoint
+        run: |
+          git reset --soft 33e944fb870f9df0694ae62698ee62d445775400
+          python3 .claude/skills/security-scan/scripts/scan_staged.py
+          git reset --mixed "$GITHUB_SHA"
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+        env:
+          DATABASE_PROVIDER: sqlite
+          DATABASE_URL: file:data/ci.db
+          VITE_APP_NAME: Photo to Dance
+          VITE_APP_URL: https://phototodancevideo.com
+      - run: pnpm exec tsc --noEmit
+      - name: Initialize disposable backend test database
+        run: pnpm db:push
+        env:
+          DATABASE_PROVIDER: sqlite
+          DATABASE_URL: file:data/dance-backend-test.db
+      - name: Verify task and credit invariants
+        run: pnpm exec tsx scripts/test-dance-backend.ts
+        env:
+          DATABASE_PROVIDER: sqlite
+          DATABASE_URL: file:data/dance-backend-test.db
+          DB_SINGLETON_ENABLED: 'true'
+
+  postgres-integration:
+    name: PostgreSQL transaction and concurrency
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: dance
+          POSTGRES_PASSWORD: dance
+          POSTGRES_DB: dance_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U dance -d dance_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_PROVIDER: postgresql
+      PG_TEST_USER: dance
+      PG_TEST_PASSWORD: dance
+      DB_SINGLETON_ENABLED: 'true'
+      DB_MAX_CONNECTIONS: '20'
+      DANCE_PG_INTEGRATION_TEST: 'yes'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Set ephemeral PostgreSQL URL for CI
+        shell: bash
+        run: |
+          db_url="postgresql://"
+          db_url+="${PG_TEST_USER}"
+          db_url+=":"
+          db_url+="${PG_TEST_PASSWORD}"
+          db_url+="@127.0.0.1:5432/dance_test?sslmode=disable"
+          echo "DATABASE_URL=${db_url}" >> "$GITHUB_ENV"
+      - run: pnpm db:setup
+      - name: Initialize test DB schema
+        run: pnpm db:migrate
+      - name: Test real PostgreSQL concurrent credits and refunds
+        run: pnpm exec tsx scripts/test-dance-postgres.ts
+      - name: Test baseline safety on disposable PostgreSQL
+        run: pnpm exec tsx scripts/test-dance-baseline.ts
+      - name: Verify baseline prevents duplicate table creation
+        run: pnpm db:migrate
+
+  schema-export:
+    name: Export PostgreSQL schema SQL
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      DATABASE_PROVIDER: postgresql
+      DATABASE_URL: postgresql://db.example.invalid/dance_test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm db:setup
+      - name: Export initial SQL schema
+        run: |
+          pnpm db:generate
+          echo '=== DANCE_INITIAL_SCHEMA_START ==='
+          find drizzle -name '*.sql' -type f -exec cat {} \;
+          echo '=== DANCE_INITIAL_SCHEMA_END ==='
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dance-postgres-schema
+          path: drizzle/

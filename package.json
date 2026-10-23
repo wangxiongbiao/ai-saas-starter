@@ -16,12 +16,17 @@
     "db:push": "tsx scripts/with-env.ts drizzle-kit push --config=drizzle.config.ts",
     "db:generate": "tsx scripts/with-env.ts drizzle-kit generate --config=drizzle.config.ts",
     "db:migrate": "tsx scripts/with-env.ts drizzle-kit migrate --config=drizzle.config.ts",
+    "db:baseline:dance-test": "tsx scripts/with-env.ts tsx scripts/baseline-dance-postgres.ts",
     "db:studio": "tsx scripts/with-env.ts drizzle-kit studio --config=drizzle.config.ts",
     "rbac:init": "tsx scripts/with-env.ts tsx scripts/init-rbac.ts",
     "rbac:assign": "tsx scripts/with-env.ts tsx scripts/assign-role.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "prepare": "husky"
+    "prepare": "husky",
+    "test:dance:postgres": "tsx scripts/test-dance-postgres.ts",
+    "test:dance:r2": "tsx scripts/test-dance-r2.ts",
+    "cf:preview:check": "node scripts/check-cf-preview.mjs",
+    "cf:preview:deploy": "pnpm cf:preview:check && pnpm cf:build && pnpm exec wrangler deploy"
   },
   "lint-staged": {
     "*.{ts,tsx,js,jsx,mjs,cjs}": "prettier --write",
