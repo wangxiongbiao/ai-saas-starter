@@ -20,7 +20,7 @@
     "DANCE_GENERATION_ENABLED": "false"
   },
   // Isolated Neon dance_test preview branch; never use the production Hyperdrive.
-  "hyperdrive": [{ "binding": "HYPERDRIVE", "id": "06a96dd38c2e4566a4db40b7a65c4969" }],
+  "hyperdrive": [{ "binding": "HYPERDRIVE", "id": "d188ba007fec4a529f17f9bd1033bfb8" }],
   "r2_buckets": [
     { "binding": "DANCE_PRIVATE_BUCKET", "bucket_name": "photodance-private-preview" }
   ]

@@ -16,6 +16,7 @@
     "db:push": "tsx scripts/with-env.ts drizzle-kit push --config=drizzle.config.ts",
     "db:generate": "tsx scripts/with-env.ts drizzle-kit generate --config=drizzle.config.ts",
     "db:migrate": "tsx scripts/with-env.ts drizzle-kit migrate --config=drizzle.config.ts",
+    "db:baseline:dance-test": "tsx scripts/with-env.ts tsx scripts/baseline-dance-postgres.ts",
     "db:studio": "tsx scripts/with-env.ts drizzle-kit studio --config=drizzle.config.ts",
     "rbac:init": "tsx scripts/with-env.ts tsx scripts/init-rbac.ts",
     "rbac:assign": "tsx scripts/with-env.ts tsx scripts/assign-role.ts",
